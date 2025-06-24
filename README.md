@@ -1,26 +1,22 @@
-# Mutual Funds MERN Stack Application
+# Mutual Funds MERN Stack Web Application
 
 A comprehensive mutual funds investment platform built with the MERN stack (MongoDB, Express.js, React, Node.js) and Tailwind CSS.
 
+## 🛠 Setup Instructions
 
-## 🛠 **Setup Instructions**
+# Backend Setup:
 
-1. **Backend Setup**:
-   \`\`\`bash
-   cd backend
-   npm install
-   npm run seed  # Seed database with sample data
-   npm run dev   # Start server on port 5000
-   \`\`\`
+Install dependencies and run backend
+1. cd backend <br>
+2. npm install <br>
+3. npm run seed  &nbsp; &nbsp; # Seed the database with sample mutual fund data <br>
+4. npm run dev <br>
 
-2. **Frontend Setup**:
-   \`\`\`bash
-   cd frontend
-   npm install
-   npm run dev   # Start React app on port 5173
-   \`\`\`
+# Frontend Setup:
 
-3. **Database**: MongoDB (local or MongoDB Atlas)
+1. Open a new terminal and run frontend
+2. cd frontend <br>
+3. npm install <br>
+4. npm run dev <br>
 
-
-The application is production-ready with proper error handling, security measures, and a professional user interface!
+<strong> The web application is deployed with proper error handling, security measures, and a professional user interface and user can register, log in, search for mutual funds, view details, save them, and view their saved funds.</strong>
