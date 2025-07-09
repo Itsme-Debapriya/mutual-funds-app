@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import FundCard from "../components/funds/FundCard"
-import LoadingSpinner from "../components/ui/LoadingSpinner"
-import Button from "../components/ui/Button"
-import Input from "../components/ui/Input"
-import { Search, Filter, X } from "lucide-react"
-import axios from "axios"
-import toast from "react-hot-toast"
+import { useState, useEffect } from "react";
+import FundCard from "../components/funds/FundCard";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
+import { Search, Filter, X } from "lucide-react";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 export default function SearchPage() {
-  const [funds, setFunds] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [savedFundIds, setSavedFundIds] = useState(new Set())
+  const [funds, setFunds] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [savedFundIds, setSavedFundIds] = useState(new Set());
   const [filters, setFilters] = useState({
     search: "",
     category: "all",
@@ -20,53 +20,62 @@ export default function SearchPage() {
     riskRating: "all",
     sortBy: "name",
     sortOrder: "asc",
-  })
-  const [categories, setCategories] = useState([])
-  const [fundHouses, setFundHouses] = useState([])
-  const [riskRatings, setRiskRatings] = useState([])
+  });
+  const [categories, setCategories] = useState([]);
+  const [fundHouses, setFundHouses] = useState([]);
+  const [riskRatings, setRiskRatings] = useState([]);
 
   useEffect(() => {
-    fetchMetadata()
-    searchFunds()
-  }, [])
+    fetchMetadata();
+    searchFunds();
+  }, []);
+
+  // Auto-search when filters change
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      searchFunds();
+    }, 300); // Debounce search by 300ms
+
+    return () => clearTimeout(timeoutId);
+  }, [filters]);
 
   const fetchMetadata = async () => {
     try {
-      const response = await axios.get("/funds/meta/categories")
-      setCategories(response.data.categories)
-      setFundHouses(response.data.fundHouses)
-      setRiskRatings(response.data.riskRatings)
+      const response = await axios.get("/funds/meta/categories");
+      setCategories(response.data.categories);
+      setFundHouses(response.data.fundHouses);
+      setRiskRatings(response.data.riskRatings);
     } catch (error) {
-      console.error("Error fetching metadata:", error)
+      console.error("Error fetching metadata:", error);
     }
-  }
+  };
 
   const searchFunds = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const queryParams = new URLSearchParams()
+      const queryParams = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
         if (value && value !== "all") {
-          queryParams.append(key, value)
+          queryParams.append(key, value);
         }
-      })
+      });
 
-      const response = await axios.get(`/funds?${queryParams}`)
-      setFunds(response.data.funds || [])
+      const response = await axios.get(`/funds?${queryParams}`);
+      setFunds(response.data.funds || []);
     } catch (error) {
-      console.error("Error searching funds:", error)
-      toast.error("Failed to search funds. Please try again.")
+      console.error("Error searching funds:", error);
+      toast.error("Failed to search funds. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({
       ...prev,
       [key]: value,
-    }))
-  }
+    }));
+  };
 
   const handleClearFilters = () => {
     setFilters({
@@ -76,32 +85,36 @@ export default function SearchPage() {
       riskRating: "all",
       sortBy: "name",
       sortOrder: "asc",
-    })
-  }
+    });
+  };
 
   const handleSaveToggle = (fundId, isSaved) => {
     setSavedFundIds((prev) => {
-      const newSet = new Set(prev)
+      const newSet = new Set(prev);
       if (isSaved) {
-        newSet.add(fundId)
+        newSet.add(fundId);
       } else {
-        newSet.delete(fundId)
+        newSet.delete(fundId);
       }
-      return newSet
-    })
-  }
+      return newSet;
+    });
+  };
 
   const hasActiveFilters =
     filters.search ||
     (filters.category && filters.category !== "all") ||
     (filters.fundHouse && filters.fundHouse !== "all") ||
-    (filters.riskRating && filters.riskRating !== "all")
+    (filters.riskRating && filters.riskRating !== "all");
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Search Mutual Funds</h1>
-        <p className="text-gray-600">Find the perfect mutual funds for your investment portfolio</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Search Mutual Funds
+        </h1>
+        <p className="text-gray-600">
+          Find the perfect mutual funds for your investment portfolio
+        </p>
       </div>
 
       <div className="space-y-6">
@@ -111,6 +124,12 @@ export default function SearchPage() {
             <div className="flex items-center space-x-2">
               <Filter className="h-5 w-5 text-gray-500" />
               <h3 className="text-lg font-semibold">Search & Filter</h3>
+              {isLoading && (
+                <div className="flex items-center space-x-2 text-blue-600">
+                  <LoadingSpinner size="sm" />
+                  <span className="text-sm">Searching...</span>
+                </div>
+              )}
             </div>
             {hasActiveFilters && (
               <Button variant="outline" size="sm" onClick={handleClearFilters}>
@@ -122,7 +141,10 @@ export default function SearchPage() {
 
           {/* Search Input */}
           <div>
-            <label htmlFor="search" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="search"
+              className="block text-sm font-medium text-gray-700"
+            >
               Search Funds
             </label>
             <div className="relative mt-1">
@@ -135,13 +157,20 @@ export default function SearchPage() {
                 onChange={(e) => handleFilterChange("search", e.target.value)}
                 className="pl-10"
               />
+              {isLoading && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <LoadingSpinner size="sm" />
+                </div>
+              )}
             </div>
           </div>
 
           {/* Filter Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Category</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Category
+              </label>
               <select
                 value={filters.category}
                 onChange={(e) => handleFilterChange("category", e.target.value)}
@@ -157,10 +186,14 @@ export default function SearchPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Fund House</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Fund House
+              </label>
               <select
                 value={filters.fundHouse}
-                onChange={(e) => handleFilterChange("fundHouse", e.target.value)}
+                onChange={(e) =>
+                  handleFilterChange("fundHouse", e.target.value)
+                }
                 className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Fund Houses</option>
@@ -173,10 +206,14 @@ export default function SearchPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Risk Rating</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Risk Rating
+              </label>
               <select
                 value={filters.riskRating}
-                onChange={(e) => handleFilterChange("riskRating", e.target.value)}
+                onChange={(e) =>
+                  handleFilterChange("riskRating", e.target.value)
+                }
                 className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Risk Levels</option>
@@ -189,7 +226,9 @@ export default function SearchPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Sort By</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Sort By
+              </label>
               <div className="flex space-x-2 mt-1">
                 <select
                   value={filters.sortBy}
@@ -205,7 +244,9 @@ export default function SearchPage() {
                 </select>
                 <select
                   value={filters.sortOrder}
-                  onChange={(e) => handleFilterChange("sortOrder", e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("sortOrder", e.target.value)
+                  }
                   className="w-20 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="asc">↑</option>
@@ -215,49 +256,75 @@ export default function SearchPage() {
             </div>
           </div>
 
-          {/* Search Button */}
+          {/* Search Button - Now Optional */}
           <div className="flex justify-end">
-            <Button onClick={searchFunds} className="px-8">
+            <Button
+              onClick={searchFunds}
+              variant="outline"
+              className="px-6 bg-transparent"
+            >
               <Search className="h-4 w-4 mr-2" />
-              Search Funds
+              Refresh Results
             </Button>
           </div>
         </div>
 
         {/* Results */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <LoadingSpinner />
-            <span className="ml-2 text-gray-600">Searching funds...</span>
-          </div>
-        ) : (
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <p className="text-gray-600">
-                Found {funds.length} fund{funds.length !== 1 ? "s" : ""}
-              </p>
-            </div>
-
-            {funds.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {funds.map((fund) => (
-                  <FundCard
-                    key={fund.fundId}
-                    fund={fund}
-                    isSaved={savedFundIds.has(fund.fundId)}
-                    onSaveToggle={handleSaveToggle}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">No funds found matching your criteria</p>
-                <p className="text-gray-400 mt-2">Try adjusting your search filters</p>
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <p className="text-gray-600">
+              {isLoading ? (
+                "Searching..."
+              ) : (
+                <>
+                  Found {funds.length} fund{funds.length !== 1 ? "s" : ""}
+                  {hasActiveFilters && (
+                    <span className="text-blue-600 font-medium">
+                      {" "}
+                      (filtered)
+                    </span>
+                  )}
+                </>
+              )}
+            </p>
+            {hasActiveFilters && !isLoading && (
+              <div className="text-sm text-gray-500">
+                Active filters:{" "}
+                {Object.values(filters).filter((v) => v && v !== "all").length}
               </div>
             )}
           </div>
-        )}
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <LoadingSpinner />
+              <span className="ml-2 text-gray-600">Searching funds...</span>
+            </div>
+          ) : funds.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {funds.map((fund) => (
+                <FundCard
+                  key={fund.fundId}
+                  fund={fund}
+                  isSaved={savedFundIds.has(fund.fundId)}
+                  onSaveToggle={handleSaveToggle}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">
+                No funds found matching your criteria
+              </p>
+              <p className="text-gray-400 mt-2">
+                {hasActiveFilters
+                  ? "Try adjusting your search filters"
+                  : "Start typing to search for funds"}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
-  )
+  );
 }
