@@ -30,6 +30,15 @@ export default function SearchPage() {
     searchFunds()
   }, [])
 
+  // Auto-search when filters change
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      searchFunds()
+    }, 300) // Debounce search by 300ms
+
+    return () => clearTimeout(timeoutId)
+  }, [filters])
+
   const fetchMetadata = async () => {
     try {
       const response = await axios.get("/funds/meta/categories")
@@ -111,6 +120,12 @@ export default function SearchPage() {
             <div className="flex items-center space-x-2">
               <Filter className="h-5 w-5 text-gray-500" />
               <h3 className="text-lg font-semibold">Search & Filter</h3>
+              {isLoading && (
+                <div className="flex items-center space-x-2 text-blue-600">
+                  <LoadingSpinner size="sm" />
+                  <span className="text-sm">Searching...</span>
+                </div>
+              )}
             </div>
             {hasActiveFilters && (
               <Button variant="outline" size="sm" onClick={handleClearFilters}>
@@ -135,6 +150,11 @@ export default function SearchPage() {
                 onChange={(e) => handleFilterChange("search", e.target.value)}
                 className="pl-10"
               />
+              {isLoading && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <LoadingSpinner size="sm" />
+                </div>
+              )}
             </div>
           </div>
 
@@ -215,48 +235,60 @@ export default function SearchPage() {
             </div>
           </div>
 
-          {/* Search Button */}
+          {/* Search Button - Now Optional */}
           <div className="flex justify-end">
-            <Button onClick={searchFunds} className="px-8">
+            <Button onClick={searchFunds} variant="outline" className="px-6 bg-transparent">
               <Search className="h-4 w-4 mr-2" />
-              Search Funds
+              Refresh Results
             </Button>
           </div>
         </div>
 
         {/* Results */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <LoadingSpinner />
-            <span className="ml-2 text-gray-600">Searching funds...</span>
-          </div>
-        ) : (
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <p className="text-gray-600">
-                Found {funds.length} fund{funds.length !== 1 ? "s" : ""}
-              </p>
-            </div>
-
-            {funds.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {funds.map((fund) => (
-                  <FundCard
-                    key={fund.fundId}
-                    fund={fund}
-                    isSaved={savedFundIds.has(fund.fundId)}
-                    onSaveToggle={handleSaveToggle}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">No funds found matching your criteria</p>
-                <p className="text-gray-400 mt-2">Try adjusting your search filters</p>
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <p className="text-gray-600">
+              {isLoading ? (
+                "Searching..."
+              ) : (
+                <>
+                  Found {funds.length} fund{funds.length !== 1 ? "s" : ""}
+                  {hasActiveFilters && <span className="text-blue-600 font-medium"> (filtered)</span>}
+                </>
+              )}
+            </p>
+            {hasActiveFilters && !isLoading && (
+              <div className="text-sm text-gray-500">
+                Active filters: {Object.values(filters).filter((v) => v && v !== "all").length}
               </div>
             )}
           </div>
-        )}
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <LoadingSpinner />
+              <span className="ml-2 text-gray-600">Searching funds...</span>
+            </div>
+          ) : funds.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {funds.map((fund) => (
+                <FundCard
+                  key={fund.fundId}
+                  fund={fund}
+                  isSaved={savedFundIds.has(fund.fundId)}
+                  onSaveToggle={handleSaveToggle}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">No funds found matching your criteria</p>
+              <p className="text-gray-400 mt-2">
+                {hasActiveFilters ? "Try adjusting your search filters" : "Start typing to search for funds"}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
